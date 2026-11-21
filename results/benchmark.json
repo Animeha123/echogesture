@@ -1,0 +1,17 @@
+{
+  "host": "Intel64 Family 6 Model 186 Stepping 3, GenuineIntel / Windows",
+  "threads": 2,
+  "classifier_int8_mb": 4.088,
+  "classifier_fp32_mb": 15.149,
+  "mediapipe_tasks_mb": 13.597,
+  "total_pipeline_mb": 17.685,
+  "classifier_ms_p50": 3.326250000100117,
+  "classifier_ms_p95": 5.758569996396544,
+  "landmark_ms_per_frame_p50": 39.05558820760939,
+  "latency_e2e_ms_p50": 45.195,
+  "latency_e2e_ms_p95": 60.595000000000006,
+  "n_clips": 20,
+  "thermal_first_min_ms": 27.111949999834906,
+  "thermal_last_min_ms": 28.46545000011247,
+  "thermal_drift_pct": 4.992263560112073
+}

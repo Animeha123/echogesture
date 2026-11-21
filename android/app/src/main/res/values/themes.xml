@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.EchoGesture" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#00C896</item>
+        <item name="colorOnPrimary">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+    </style>
+</resources>

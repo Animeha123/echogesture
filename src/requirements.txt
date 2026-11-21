@@ -1,0 +1,8 @@
+# Inference (what predict() needs) - Python 3.11
+# mediapipe is pinned: 0.10.21 measured ~6x faster per frame than 1.2.x on Windows x86
+numpy>=1.26,<2
+opencv-python>=4.9,<4.11
+mediapipe==0.10.21
+onnxruntime>=1.18
+# Optional: offline text-to-speech for the live HUD demo
+pyttsx3>=2.90

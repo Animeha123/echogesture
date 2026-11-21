@@ -1,0 +1,9 @@
+wlasl_51068 25
+wlasl_28465 59
+wlasl_46373 51
+wlasl_63832 110
+wlasl_08643 96
+wlasl_69326 54
+edge_nopose 25
+edge_gaps 25
+edge_single 1

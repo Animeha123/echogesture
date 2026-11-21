@@ -1,0 +1,7 @@
+-r requirements.txt
+# Training + conversion
+torch>=2.2
+# onnx 1.17 still works with protobuf 4.x, which mediapipe 0.10.21 requires
+onnx==1.17.0
+protobuf<5
+# Optional TFLite export: onnx2tf tensorflow

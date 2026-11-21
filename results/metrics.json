@@ -1,0 +1,95 @@
+{
+  "clean": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 65.135,
+    "latency_p95_ms": 111.51199999999999,
+    "top1": 51.333333333333336,
+    "top5": 87.33333333333333
+  },
+  "dim": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 79.865,
+    "latency_p95_ms": 128.47549999999998,
+    "top1": 48.0,
+    "top5": 85.33333333333333
+  },
+  "bright": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 66.00999999999999,
+    "latency_p95_ms": 92.28749999999997,
+    "top1": 48.0,
+    "top5": 86.0
+  },
+  "colour": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 55.135000000000005,
+    "latency_p95_ms": 76.127,
+    "top1": 50.0,
+    "top5": 88.66666666666667
+  },
+  "blur": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 61.135000000000005,
+    "latency_p95_ms": 78.98149999999998,
+    "top1": 44.666666666666664,
+    "top5": 80.66666666666667
+  },
+  "compress": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 55.305,
+    "latency_p95_ms": 75.317,
+    "top1": 43.333333333333336,
+    "top5": 78.66666666666667
+  },
+  "distance": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 48.095,
+    "latency_p95_ms": 62.544999999999995,
+    "top1": 43.333333333333336,
+    "top5": 82.0
+  },
+  "angle": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 46.185,
+    "latency_p95_ms": 58.729499999999966,
+    "top1": 52.0,
+    "top5": 87.33333333333333
+  },
+  "accuracy_drop_robustness_pt": 4.285714285714292,
+  "accuracy_drop_worst_pt": 8.0,
+  "worst_condition": "compress",
+  "robustness_conditions": [
+    "dim",
+    "bright",
+    "colour",
+    "blur",
+    "compress",
+    "distance",
+    "angle"
+  ],
+  "occlusion": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 45.620000000000005,
+    "latency_p95_ms": 61.54549999999998,
+    "top1": 39.333333333333336,
+    "top5": 74.66666666666667
+  },
+  "lowlight": {
+    "n": 150,
+    "n_labelled": 150,
+    "latency_p50_ms": 51.864999999999995,
+    "latency_p95_ms": 62.405499999999996,
+    "top1": 49.333333333333336,
+    "top5": 80.0
+  },
+  "accuracy_drop_stress_pt": 7.0
+}
