@@ -17,7 +17,7 @@ camera / video ─► MediaPipe Hands (every frame) + Pose-lite (every 2nd frame
 | Metric | Target | Ours | |
 |---|---|---|---|
 | Top-1 accuracy, WLASL-2000 test (1,414 clips) | ≥ 70 % | **61.0 %** (top-5 91.0 %) | ✗ |
-| p95 latency (last frame → caption) | ≤ 50 ms | **91.5 ms** on phone (p50 52 ms, 18 FPS) | ✗ |
+| p95 latency (last frame → caption) | ≤ 50 ms | **91.5 ms** on Galaxy S23 FE, Exynos 2200 (p50 52 ms, 18 FPS) | ✗ |
 | Model size, whole pipeline (classifier + MediaPipe) | ≤ 25 MB | **17.7 MB** | ✓ |
 | Robustness drop (7 realistic conditions) | ≤ 5 pt | **1.0 pt** | ✓ |
 | Average power | ≤ 500 mW | ≈ 5.2 W whole phone with ML on (screen + camera included; ML-off baseline not yet measured) | ? |
