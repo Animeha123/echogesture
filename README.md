@@ -7,6 +7,8 @@ Point your phone at someone signing in American Sign Language and EchoGesture tu
 
 We built it to be something a person could actually install and use today, not just a model in a notebook.
 
+🎬 **[Watch the demo video](docs/demo_video.mp4)**
+
 ## Why EchoGesture stands out
 
 - **📱 A real, installable Android app.** [**Download the APK from Google Drive**](https://drive.google.com/file/d/1x4vo_CWDhcoI93I15XHD4scHbvaA99iE/view?usp=drive_link), install it, and start signing. No Android Studio and no setup. The full source is in `android/` if you want to build it yourself.
