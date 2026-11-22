@@ -13,7 +13,7 @@ from pptx.util import Inches, Pt
 
 NUM = dict(
     top1="61.0", top5="91.0", top1_100="67.0", top1_300="68.1",
-    latency="91.5 ms", size="17.7", drop="1.0", power="≈2,670 mW", drift="−22.5",
+    latency="91.5 ms", size="17.7", drop="1.0", power="≈2,575 mW", drift="−22.5",
     clf_mb="4.1", aslc_clips="41,464",
 )
 REPO = "github.com/Animeha123/echogesture"
