@@ -116,6 +116,22 @@ We got here one step at a time, and kept only what actually helped:
 - **Next steps:** run MediaPipe hands/pose on the GPU delegate (typically 2-4x less power and lower latency), cap the camera at 15 FPS / 640x480, skip pose while no hands are visible, and try NNAPI/GPU for the classifier. These were not tested in time because the app was built without an Android SDK on the training laptop.
 - **Accuracy (61.0 % vs 70 % target):** the model sees only 53 landmarks per frame; the hardest confusions are between signs with near-identical hand shapes and motion. More signer data and a larger temporal model are the main levers.
 
+## AI usage disclosure
+
+We used an AI coding assistant (Claude, by Anthropic) during development. It helped write and debug code: the Python pipeline (landmark extraction, features, training, quantization and evaluation scripts), the Android app code and UI, and the packaging scripts. It also drafted documentation (this README and the deck text) and suggested training and evaluation approaches.
+
+The team set the direction and made the decisions:
+
+- chose the approach and datasets
+- decided which models to keep or drop
+- ran GPU training on Colab and Kaggle
+- built, installed and tested the Android app on a real phone (Samsung Galaxy S23 FE)
+- took all on-device measurements (latency, power, thermal drift)
+- recorded the demo video
+- reviewed and submitted the work
+
+All reported numbers come from our own runs and are reproducible with the scripts in `src/scripts/`. No AI model is part of the shipped product: EchoGesture runs only our own trained classifier and Google's MediaPipe, fully on-device.
+
 ## Data and credits
 
 Training videos are **not** included in this repository; both datasets' licences forbid redistribution.
