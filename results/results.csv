@@ -3,7 +3,7 @@ top1_accuracy,>=70,61.03,%,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Andr
 latency_p95,<=50,91.5,ms,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Android INT8 (CPU) + MediaPipe tasks 0.10.20,fail
 model_size,<=25,17.68,MB,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Android INT8 (CPU) + MediaPipe tasks 0.10.20,pass
 accuracy_drop_robustness,<=5,1.05,pt,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Android INT8 (CPU) + MediaPipe tasks 0.10.20,pass
-avg_power,<=500,,mW,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Android INT8 (CPU) + MediaPipe tasks 0.10.20,
+avg_power,<=500,2666.0,mW,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Android INT8 (CPU) + MediaPipe tasks 0.10.20,fail
 thermal_drift_10min,<=20,-22.5,%,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Android INT8 (CPU) + MediaPipe tasks 0.10.20,pass
 top5_accuracy,,89.33,%,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Android INT8 (CPU) + MediaPipe tasks 0.10.20,info
 accuracy_drop_worst_condition,,4.67,pt,Samsung Galaxy S23 FE (Exynos 2200),ONNX Runtime Android INT8 (CPU) + MediaPipe tasks 0.10.20,info

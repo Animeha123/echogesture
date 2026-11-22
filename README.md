@@ -20,7 +20,7 @@ camera / video ─► MediaPipe Hands (every frame) + Pose-lite (every 2nd frame
 | p95 latency (last frame → caption) | ≤ 50 ms | **91.5 ms** on Galaxy S23 FE, Exynos 2200 (p50 52 ms, 18 FPS) | ✗ |
 | Model size, whole pipeline (classifier + MediaPipe) | ≤ 25 MB | **17.7 MB** | ✓ |
 | Robustness drop (7 realistic conditions) | ≤ 5 pt | **1.0 pt** | ✓ |
-| Average power | ≤ 500 mW | ≈ 5.2 W whole phone with ML on (screen + camera included; ML-off baseline not yet measured) | ? |
+| Average power | ≤ 500 mW | **≈ 2,670 mW** for ML (5,232 mW with ML on − 2,566 mW with ML paused; camera + screen on in both) | ✗ |
 | Thermal drift (10 min sustained) | ≤ 20 % | **−22.5 %** on phone over 11.9 min (got faster, no throttling) | ✓ |
 
 Accuracy on vocabulary subsets (same model, choosing among all 2,000 words):
