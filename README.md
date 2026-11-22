@@ -9,6 +9,11 @@ We built it to be something a person could actually install and use today, not j
 
 🎬 **[Watch the demo video](docs/demo_video.mp4)**
 
+
+https://github.com/user-attachments/assets/1cd6ab78-074c-4ffa-a776-58d44ed02bb2
+
+
+
 ## Why EchoGesture stands out
 
 - **📱 A real, installable Android app.** [**Download the APK from Google Drive**](https://drive.google.com/file/d/1x4vo_CWDhcoI93I15XHD4scHbvaA99iE/view?usp=drive_link), install it, and start signing. No Android Studio and no setup. The full source is in `android/` if you want to build it yourself.
