@@ -87,6 +87,12 @@ Open `android/` in Android Studio and press **Run**. Every model is bundled in `
 | + 7,826 pixel-augmented copies (compression, exposure, colour, occlusion) | 57.0 % FP32 / 56.5 % INT8 | 3.6 pt |
 | **+ up to 30 ASL Citizen clips per word (41,464 clips in total)** | **61.3 %** FP32 / **61.0 %** INT8 | **1.0 pt** |
 
+## Known limitations and next steps
+
+- **Latency and power are dominated by MediaPipe landmark detection, not the classifier.** On the Galaxy S23 FE a frame takes ~52 ms (p50), of which features + classifier are only ~5-20 ms. Hand landmarks run on every frame and pose on every second frame, all on the CPU at ~18 FPS, which keeps the big cores busy (~2.6 W for ML).
+- **Next steps:** run MediaPipe hands/pose on the GPU delegate (typically 2-4x less power and lower latency), cap the camera at 15 FPS / 640x480, skip pose while no hands are visible, and try NNAPI/GPU for the classifier. These were not tested in time because the app was built without an Android SDK on the training laptop.
+- **Accuracy (61.0 % vs 70 % target):** the model sees only 53 landmarks per frame; the hardest confusions are between signs with near-identical hand shapes and motion. More signer data and a larger temporal model are the main levers.
+
 ## Data and credits
 
 Training videos are **not** included in this repository; both datasets' licences forbid redistribution.
