@@ -9,7 +9,7 @@ We built it to be something a person could actually install and use today, not j
 
 ## Why EchoGesture stands out
 
-- **📱 A real, installable Android app.** Grab the APK from [`apk/EchoGesture.apk`](apk/), install it, and start signing. No Android Studio and no setup. The full source is in `android/` if you want to build it yourself.
+- **📱 A real, installable Android app.** [**Download the APK from Google Drive**](https://drive.google.com/file/d/1x4vo_CWDhcoI93I15XHD4scHbvaA99iE/view?usp=drive_link), install it, and start signing. No Android Studio and no setup. The full source is in `android/` if you want to build it yourself.
 - **🔤 The complete 2,000-word WLASL vocabulary.** Many sign-recognition demos shrink the problem to 100 or 300 words. We kept all 2,000, and every number below is our model choosing among all of them.
 - **✅ Tested on every one of the 1,414 official test videos** through the same `predict()` function the evaluator runs: **61.0 % top-1, 91.1 % top-5**. The test split was never used for training.
 - **💪 Barely notices bad conditions.** Across dim light, glare, colour casts, blur, heavy compression, distance and camera angle, accuracy drops by only **1.0 pt** on average (target ≤ 5 pt).
@@ -66,7 +66,6 @@ src/                    everything the evaluator needs (Python 3.11)
   models/               echogesture_int8.onnx (deployed), echogesture_fp32.onnx, echogesture.pt
                         (training checkpoint), labels.txt, MediaPipe .task bundles
 results/                predictions.jsonl / .json, results.csv, metrics.json, benchmark.json
-apk/                    EchoGesture.apk, ready to install
 android/                Android Studio project (CameraX + MediaPipe + ONNX Runtime), see android/README.md
 training/               Colab notebook + bundling script used for GPU training
 docs/                   submission deck (.pptx) and demo video
@@ -95,7 +94,7 @@ Full training and reproduction steps are in [`src/README.md`](src/README.md).
 
 ## Android app
 
-**Easiest:** copy `apk/EchoGesture.apk` to an Android phone (Android 8.0 or newer), tap it, and allow installing from this source. **From source:** open `android/` in Android Studio and press **Run**. Every model is bundled in `assets/`, so the app needs no network. It shows the live word with top-5 and confidence, builds a sentence (tap an alternative to correct a word), and segments signs automatically when your hands rise and fall. A stats overlay shows latency p50/p95, FPS, power (ML on vs off), battery temperature and thermal drift. See [`android/README.md`](android/README.md).
+**Easiest:** download the [APK from Google Drive](https://drive.google.com/file/d/1x4vo_CWDhcoI93I15XHD4scHbvaA99iE/view?usp=drive_link) on an Android phone (Android 8.0 or newer), tap it, and allow installing from this source. **From source:** open `android/` in Android Studio and press **Run**. Every model is bundled in `assets/`, so the app needs no network. It shows the live word with top-5 and confidence, builds a sentence (tap an alternative to correct a word), and segments signs automatically when your hands rise and fall. A stats overlay shows latency p50/p95, FPS, power (ML on vs off), battery temperature and thermal drift. See [`android/README.md`](android/README.md).
 
 ## How we got here
 
