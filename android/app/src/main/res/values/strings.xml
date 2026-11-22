@@ -1,3 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">EchoGesture</string>
+    <string name="cd_help">How to use</string>
+    <string name="cd_stats">Show performance stats</string>
+    <string name="cd_flip">Switch camera</string>
+    <string name="cd_undo">Remove last word</string>
+    <string name="cd_clear">Clear sentence</string>
+    <string name="cd_copy">Copy sentence</string>
+    <string name="cd_speak">Speak sentence</string>
 </resources>

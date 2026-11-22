@@ -1,13 +1,12 @@
 metric,target,measured,unit,device,runtime,pass
-top1_accuracy,>=70,56.22,%,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",fail
-latency_p95,<=50,60.6,ms,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",fail
-model_size,<=25,17.68,MB,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",pass
-accuracy_drop_robustness,<=5,4.29,pt,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",pass
-avg_power,<=500,,mW,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",
-thermal_drift_10min,<=20,4.99,%,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",pass
-top5_accuracy,,87.33,%,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",info
-accuracy_drop_worst_condition,,8.0,pt,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",info
-accuracy_drop_stress_occlusion_lowlight,,7.0,pt,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",info
-latency_p50,,45.2,ms,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",info
-classifier_size_int8,,4.09,MB,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",info
-classifier_latency_p95,,5.76,ms,Laptop i5-1334U,"ONNX Runtime INT8, CPU (MediaPipe 0.10.21)",info
+top1_accuracy,>=70,61.03,%,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,fail
+latency_p95,<=50,91.5,ms,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,fail
+model_size,<=25,17.68,MB,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,pass
+accuracy_drop_robustness,<=5,1.05,pt,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,pass
+avg_power,<=500,,mW,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,
+thermal_drift_10min,<=20,-22.5,%,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,pass
+top5_accuracy,,89.33,%,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,info
+accuracy_drop_worst_condition,,4.67,pt,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,info
+accuracy_drop_stress_occlusion_lowlight,,5.0,pt,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,info
+classifier_size_int8,,4.09,MB,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,info
+classifier_latency_p95,,5.76,ms,"Android phone (app, on-device)",ONNX Runtime Android INT8 + MediaPipe tasks 0.10.20,info

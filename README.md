@@ -16,23 +16,23 @@ camera / video ─► MediaPipe Hands (every frame) + Pose-lite (every 2nd frame
 
 | Metric | Target | Ours | |
 |---|---|---|---|
-| Top-1 accuracy, WLASL-2000 test (1,414 clips) | ≥ 70 % | **56.2 %** (top-5 88.8 %) | ✗ |
-| p95 latency (last frame → caption) | ≤ 50 ms | see `results/results.csv` | |
+| Top-1 accuracy, WLASL-2000 test (1,414 clips) | ≥ 70 % | **61.0 %** (top-5 91.0 %) | ✗ |
+| p95 latency (last frame → caption) | ≤ 50 ms | **91.5 ms** on phone (p50 52 ms, 18 FPS) | ✗ |
 | Model size, whole pipeline (classifier + MediaPipe) | ≤ 25 MB | **17.7 MB** | ✓ |
-| Robustness drop (7 realistic conditions) | ≤ 5 pt | **4.3 pt** | ✓ |
-| Average power | ≤ 500 mW | measured on phone, see `results/results.csv` | |
-| Thermal drift (10 min sustained) | ≤ 20 % | see `results/results.csv` | |
+| Robustness drop (7 realistic conditions) | ≤ 5 pt | **1.0 pt** | ✓ |
+| Average power | ≤ 500 mW | ≈ 5.2 W whole phone with ML on (screen + camera included; ML-off baseline not yet measured) | ? |
+| Thermal drift (10 min sustained) | ≤ 20 % | **−22.5 %** on phone over 11.9 min (got faster, no throttling) | ✓ |
 
 Accuracy on vocabulary subsets (same model, choosing among all 2,000 words):
 
 | Subset | Top-1 | Top-5 |
 |---|---|---|
-| WLASL-100 | 63.0 % | 87.0 % |
-| WLASL-300 | 63.7 % | 91.2 % |
-| WLASL-1000 | 59.4 % | 91.5 % |
-| WLASL-2000 | 56.2 % | 88.8 % |
+| WLASL-100 | 67.0 % | 91.0 % |
+| WLASL-300 | 68.1 % | 94.0 % |
+| WLASL-1000 | 64.8 % | 92.8 % |
+| WLASL-2000 | 61.0 % | 91.0 % |
 
-INT8 quantization costs **0 pt** top-1 compared with FP32 (15.1 MB → 4.1 MB).
+INT8 quantization costs **0.3 pt** top-1 compared with FP32 (61.3 % → 61.0 %, 15.1 MB → 4.1 MB).
 
 Robustness is measured on 150 held-out test clips under these conditions: dim, over-exposed, colour cast, blur, heavy compression, signer far away, and camera angle. Stress tests add occlusion and very low light. Per-condition numbers are in `results/metrics.json`.
 
@@ -83,7 +83,9 @@ Open `android/` in Android Studio and press **Run**. Every model is bundled in `
 |---|---|---|
 | Landmark model on WLASL only (dim 256) | 45.1 % | 6.1 pt |
 | Bigger model (dim 384) | 40.0 % (overfits, rejected) | – |
-| **+ 16,620 ASL Citizen clips** for the 1,385 words it shares with WLASL | **56.2 %** | **4.3 pt** |
+| + 16,620 ASL Citizen clips for the 1,385 words it shares with WLASL | 56.2 % | 4.3 pt |
+| + 7,826 pixel-augmented copies (compression, exposure, colour, occlusion) | 57.0 % FP32 / 56.5 % INT8 | 3.6 pt |
+| **+ up to 30 ASL Citizen clips per word (41,464 clips in total)** | **61.3 %** FP32 / **61.0 %** INT8 | **1.0 pt** |
 
 ## Data and credits
 

@@ -22,9 +22,9 @@ Nothing goes to a server. The full app is written but has **never been built or 
 
 | File | What it does | Can you change it? |
 |---|---|---|
-| `MainActivity.kt` | Camera setup, UI wiring, sentence building, buttons, stats ticker | **Yes**, the UI parts |
+| `MainActivity.kt` | Camera setup, UI wiring, sentence building, speech, word list, stats ticker | UI parts only; `analyze()` is pipeline code, don't change it |
 | `OverlayView.kt` | Draws the hand skeleton over the camera | **Yes** |
-| `res/layout/activity_main.xml`, `res/values/*` | Layout, colours, theme, strings | **Yes**, freely |
+| `res/layout/*.xml`, `res/values/*`, `res/drawable/*` | Layout, word-list sheet, colours, theme, icons | **Yes** |
 | `Segmenter.kt` | Decides when a sign starts and ends in Auto mode (hands raised = signing) | Tuning thresholds is OK; tell us |
 | `Stats.kt` | Latency p50/p95, FPS, power, thermal drift | Display yes, maths no |
 | `Classifier.kt` | Runs the ONNX model, softmax, top-5 | **No** |
@@ -34,23 +34,34 @@ Nothing goes to a server. The full app is written but has **never been built or 
 
 **The rule:** anything that changes the numbers going into the model (`Features.kt`, `LandmarkEngine.kt`, frame rotation or scaling in `MainActivity.analyze`) must still pass `FeaturesTest` and needs a heads-up. Everything visual is yours.
 
-## 3. What the app already does
+## 3. What the app does (UI finished on 21 Nov, needs testing only)
 
-- Live camera view with the hand skeleton overlay. The front camera is mirrored.
-- **Auto mode:** raise your hands to sign and lower them to finish. Alternatively, use **Hold to sign**.
-- The word with its confidence, plus a **top-5 row**. Tap an alternative to replace the word just added.
-- Builds a **sentence**, with **Undo** and **Clear**.
-- **Stats overlay:** latency p50/p95, FPS, caption latency, classifier time, power (only when unplugged), battery temperature and thermal drift.
-- **Pause ML** and **Reset stats** for measurements, plus **Flip camera**.
+Dark, minimal design: a rounded camera card on top, the recognised word below it, then the sentence.
 
-## 4. What would make it a winning demo (pick in this order)
+- **First launch** shows a 3-step guide ("prop the phone up, raise hands and sign, tap to fix and speak"). The **?** icon reopens it.
+- **Status chip** (top-left of the camera): a green dot means ready. While a sign is being recorded the dot pulses coral, the camera border turns coral and the hand skeleton turns coral.
+- **Recognised word** is large and animates in with a light vibration. A confidence pill is green (60% or more), amber (35–60%, still added) or grey (below 35%, not added: tap the right word).
+- **Suggestions:** five chips (top-5). Tapping one replaces the word just added.
+- **Sentence card** with **Undo**, **Clear**, **Copy** and a large **Speak** button (phone text-to-speech, US English).
+- **Auto / Hold** toggle. Auto: raise hands to sign, lower to finish. Hold: a large "Press and hold while signing" button appears.
+- **Words** button: a searchable bottom sheet listing all 2,000 words, so judges can pick one to try.
+- **Stats icon** (top-right) shows the performance panel with **Pause ML** and **Reset stats**, used for the measurements in section 5. Hidden by default so the demo stays clean.
+- **Flip camera** icon (top-right). App icon: a mint hand on a dark background.
 
-1. **Get it running and stable** on the phone (section 1). This matters more than everything below.
-2. **Text-to-speech:** a "Speak" button that reads the sentence aloud (`android.speech.tts.TextToSpeech`, a few lines). It's very effective in a demo.
-3. **Polish the UI:** an app icon, a clean splash or onboarding screen explaining "raise hands → sign → lower hands", larger readable word text, and a nicer top-5 chip style. Keep the stats overlay but let it be toggled (tap to hide).
-4. **Signing indicator:** clearly show when the app thinks you're signing (for example a red recording dot or a border glow). `Segmenter` already knows this.
-5. **Word history or list:** a searchable list of the supported words from `labels.txt`, so judges can pick a word to try.
-6. Optional: share or copy the sentence, landscape layout, dark/light theme.
+## 4. Testing checklist (tomorrow)
+
+1. Build and run. Paste any red errors to the team; the UI code was written without a compiler, so a small fix may be needed.
+2. Run `FeaturesTest` (section 1). It must pass.
+3. First launch: guide appears; "Start signing" closes it; it does not come back on restart; **?** reopens it.
+4. Skeleton lines up with your hands for both the front and back camera (the preview now fills the card).
+5. Auto mode: raise hands, the border turns coral; lower them, a word appears with the pill and chips.
+6. Tap a chip: the last word in the sentence changes. Undo, Clear, Copy work.
+7. Speak reads the sentence aloud (turn the volume up).
+8. Hold mode: the big button appears; holding it records; releasing gives a word.
+9. Words sheet opens, search filters ("thank").
+10. Stats icon shows the panel; then do section 5.
+
+Small visual tweaks (colours in `res/values/colors.xml`, sizes in `activity_main.xml`) are fine. Don't restructure the screen the night before the deadline.
 
 ## 5. Measurements we need from the phone (for the submission)
 

@@ -12,11 +12,11 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.util import Inches, Pt
 
 NUM = dict(
-    top1="56.2", top5="88.8", top1_100="63.0", top1_300="63.7",
-    latency="[re-measure]", size="17.7", drop="4.3", power="[phone]", drift="5.0",
-    clf_mb="4.1", aslc_clips="16,620",
+    top1="61.0", top5="91.0", top1_100="67.0", top1_300="68.1",
+    latency="91.5 ms", size="17.7", drop="1.0", power="≈5,200 mW (whole phone)", drift="−22.5",
+    clf_mb="4.1", aslc_clips="41,464",
 )
-REPO = "[GitHub repo link]"
+REPO = "github.com/Animeha123/echogesture"
 
 BG, NAVY, CARD = "0A0E1A", "0D1B3E", "131D38"
 CYAN, BLUE, AMBER, WHITE, MUTED = "00B4D8", "1565C0", "F59E0B", "FFFFFF", "A8B3C7"
@@ -248,7 +248,7 @@ def main(src, out):
     diffs = [
         ("The full 2,000-word vocabulary", "Not a 100-word demo: one model covers all of WLASL, so any hidden test subset is covered."),
         ("Cross-dataset signers", "Added ASL Citizen (52 signers, webcam video): +11 pt top-1, better robustness."),
-        ("Measured robustness", "7 realistic conditions + 2 stress tests on held-out clips; drop of only 4.3 pt."),
+        ("Measured robustness", f"7 realistic conditions + 2 stress tests on held-out clips; drop of only {NUM['drop']} pt."),
         ("Lossless INT8", "Static per-channel quantization: 15 MB → 4.1 MB with no top-1 loss."),
         ("One pipeline, two platforms", "Kotlin port of the feature code ships with a golden-file test against the Python reference."),
         ("Fully offline and private", "Camera frames never leave the device; works in airplane mode."),
@@ -306,7 +306,7 @@ def main(src, out):
         ("Sentence building", "Signs join into a sentence; tap a top-5 alternative to correct a word; undo/clear"),
         ("Automatic sign segmentation", "Detects when hands rise into the signing space and drop again: no buttons needed"),
         ("On-phone metrics overlay", "p50/p95 latency, FPS, power (ML on vs off), battery temperature, thermal drift"),
-        ("Stress tests", "Occlusion and very low light beyond the official conditions (drop 7 pt)"),
+        ("Stress tests", "Occlusion and very low light beyond the official conditions (drop 5 pt)"),
         ("Extra training data", "ASL Citizen integrated for words it shares with WLASL (1,385 words)"),
     ]
     for i, (h, d) in enumerate(feats):

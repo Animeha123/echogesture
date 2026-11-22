@@ -1,18 +1,31 @@
 package com.echogesture.app
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.speech.tts.TextToSpeech
+import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.util.Size
+import android.view.HapticFeedbackConstants
+import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,7 +40,13 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.chip.Chip
+import java.util.Locale
 import java.util.concurrent.Executors
 import kotlin.math.max
 import kotlin.math.min
@@ -37,19 +56,35 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "EchoGesture"
         private const val AUTO_ADD_CONF = 0.35f   // auto-append top-1 to the sentence above this
+        private const val SURE_CONF = 0.60f       // confidence pill turns green above this
+        private const val PREFS = "echogesture"
+        private const val KEY_INTRO = "intro_seen"
     }
 
+    // ---- views
     private lateinit var previewView: PreviewView
     private lateinit var overlay: OverlayView
-    private lateinit var statsView: TextView
+    private lateinit var camCard: MaterialCardView
     private lateinit var statusView: TextView
+    private lateinit var statusDot: View
+    private lateinit var statsPanel: View
+    private lateinit var statsView: TextView
     private lateinit var wordView: TextView
     private lateinit var confView: TextView
     private lateinit var top5View: LinearLayout
     private lateinit var sentenceView: TextView
-    private lateinit var autoBtn: MaterialButton
+    private lateinit var modeGroup: MaterialButtonToggleGroup
+    private lateinit var modeAuto: MaterialButton
+    private lateinit var modeHold: MaterialButton
+    private lateinit var holdBtn: MaterialButton
     private lateinit var pauseBtn: MaterialButton
+    private lateinit var onboarding: View
 
+    // ---- colours
+    private var cAccent = 0; private var cAccentDim = 0; private var cRec = 0; private var cAmber = 0
+    private var cText = 0; private var cMuted = 0; private var cOutline = 0; private var cSurface2 = 0
+
+    // ---- ML pipeline (unchanged behaviour)
     private val analysisExec = Executors.newSingleThreadExecutor { r -> Thread(r, "analysis") }
     private var engine: LandmarkEngine? = null
     private var classifier: Classifier? = null
@@ -63,6 +98,7 @@ class MainActivity : AppCompatActivity() {
     @Volatile private var autoMode = true
     @Volatile private var holding = false
     private val manualBuf = ArrayList<FloatArray>()
+    private var lastRec = false   // analysis thread only: last recording state sent to the UI
 
     // classifier timing (analysis thread writes, UI reads)
     @Volatile private var lastClfMs = Double.NaN
@@ -73,62 +109,134 @@ class MainActivity : AppCompatActivity() {
     private val words = ArrayList<String>()
     private var segCounter = 0
     private var lastAddedSeg = -1
+    private var modelsReady = false
+
+    // ---- text to speech
+    private var tts: TextToSpeech? = null
+    private var ttsReady = false
+    private var pulse: ValueAnimator? = null
 
     private val askCamera = registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-        if (ok) startCamera() else statusView.text = "Camera permission is needed"
+        if (ok) startCamera() else setStatus("Camera permission is needed", cRec)
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        cAccent = color(R.color.accent); cAccentDim = color(R.color.accent_dim); cRec = color(R.color.rec)
+        cAmber = color(R.color.amber); cText = color(R.color.text); cMuted = color(R.color.muted)
+        cOutline = color(R.color.outline); cSurface2 = color(R.color.surface2)
+
         previewView = findViewById(R.id.preview)
         overlay = findViewById(R.id.overlay)
-        statsView = findViewById(R.id.stats)
+        camCard = findViewById(R.id.camCard)
         statusView = findViewById(R.id.status)
+        statusDot = findViewById(R.id.statusDot)
+        statsPanel = findViewById(R.id.statsPanel)
+        statsView = findViewById(R.id.stats)
         wordView = findViewById(R.id.word)
         confView = findViewById(R.id.conf)
         top5View = findViewById(R.id.top5)
         sentenceView = findViewById(R.id.sentence)
-        autoBtn = findViewById(R.id.auto)
+        modeGroup = findViewById(R.id.modeGroup)
+        modeAuto = findViewById(R.id.modeAuto)
+        modeHold = findViewById(R.id.modeHold)
+        holdBtn = findViewById(R.id.hold)
         pauseBtn = findViewById(R.id.pause)
-        previewView.scaleType = PreviewView.ScaleType.FIT_CENTER
+        onboarding = findViewById(R.id.onboarding)
+
+        // FILL_CENTER fills the rounded card; COMPATIBLE (TextureView) lets the card clip its corners.
+        // OverlayView uses the same fill mapping.
+        previewView.scaleType = PreviewView.ScaleType.FILL_CENTER
+        previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        sentenceView.movementMethod = ScrollingMovementMethod()
         power = PowerMeter(this)
 
-        findViewById<MaterialButton>(R.id.hold).setOnTouchListener { _, e ->
+        // ---- mode: Auto (hands up = signing) or Hold (press the button while signing)
+        styleModeButtons()
+        modeGroup.addOnButtonCheckedListener { _, id, checked ->
+            if (!checked) return@addOnButtonCheckedListener
+            autoMode = id == R.id.modeAuto
+            holding = false
+            holdBtn.visibility = if (autoMode) View.GONE else View.VISIBLE
+            analysisExec.execute { segmenter.reset() }
+            styleModeButtons()
+            setRecording(false)
+        }
+        holdBtn.setOnTouchListener { v, e ->
             when (e.action) {
-                MotionEvent.ACTION_DOWN -> { holding = true; statusView.text = "Signing... release when done" }
+                MotionEvent.ACTION_DOWN -> {
+                    holding = true
+                    v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    setRecording(true)
+                }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> holding = false
             }
             false
         }
-        autoBtn.setOnClickListener {
-            autoMode = !autoMode
-            autoBtn.text = if (autoMode) "Auto: on" else "Auto: off"
-            analysisExec.execute { segmenter.reset() }
-            statusView.text = if (autoMode) "Raise your hands and sign" else "Hold the button while signing"
-        }
-        findViewById<MaterialButton>(R.id.undo).setOnClickListener {
+
+        // ---- sentence actions
+        findViewById<ImageButton>(R.id.undo).setOnClickListener {
             if (words.isNotEmpty()) words.removeAt(words.size - 1)
             lastAddedSeg = -1; renderSentence()
         }
-        findViewById<MaterialButton>(R.id.clear).setOnClickListener {
+        findViewById<ImageButton>(R.id.clear).setOnClickListener {
             words.clear(); lastAddedSeg = -1; renderSentence()
+            top5View.removeAllViews(); showIdleWord()
         }
-        findViewById<MaterialButton>(R.id.flip).setOnClickListener {
+        findViewById<ImageButton>(R.id.copy).setOnClickListener {
+            val text = sentenceText()
+            if (text.isEmpty()) { toast("Nothing to copy yet"); return@setOnClickListener }
+            val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            cm.setPrimaryClip(ClipData.newPlainText("EchoGesture", text))
+            toast("Copied")
+        }
+        findViewById<ImageButton>(R.id.speak).setOnClickListener { speak(sentenceText()) }
+
+        // ---- camera-card buttons
+        findViewById<ImageButton>(R.id.flip).setOnClickListener {
             lensFacing = if (lensFacing == CameraSelector.LENS_FACING_FRONT)
                 CameraSelector.LENS_FACING_BACK else CameraSelector.LENS_FACING_FRONT
             analysisExec.execute { segmenter.reset() }
+            overlay.update(emptyList(), 1, 1, false, false)
             startCamera()
         }
+        findViewById<ImageButton>(R.id.statsBtn).setOnClickListener {
+            statsPanel.visibility = if (statsPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
+        findViewById<ImageButton>(R.id.helpBtn).setOnClickListener { onboarding.visibility = View.VISIBLE }
+        findViewById<MaterialButton>(R.id.introDone).setOnClickListener {
+            onboarding.visibility = View.GONE
+            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_INTRO, true).apply()
+        }
+        findViewById<MaterialButton>(R.id.wordsBtn).setOnClickListener { showWordList() }
+
+        // ---- measurement tools (inside the stats panel)
         pauseBtn.setOnClickListener {
             mlOn = !mlOn
             pauseBtn.text = if (mlOn) "Pause ML" else "Resume ML"
-            if (!mlOn) overlay.update(emptyList(), 1, 1, false, false)
+            if (!mlOn) {
+                overlay.update(emptyList(), 1, 1, false, false)
+                setStatus("Recognition paused", cAmber)
+            } else setRecording(false)
         }
         findViewById<MaterialButton>(R.id.resetStats).setOnClickListener {
             stats.reset(); power.reset()
-            Toast.makeText(this, "Stats reset", Toast.LENGTH_SHORT).show()
+            toast("Stats reset")
+        }
+
+        if (!getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_INTRO, false))
+            onboarding.visibility = View.VISIBLE
+        showIdleWord()
+        setStatus("Loading models…", cMuted)
+
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.setLanguage(Locale.US)
+                tts?.setSpeechRate(0.95f)
+                ttsReady = true
+            }
         }
 
         // load models off the UI thread (~1 s)
@@ -137,18 +245,21 @@ class MainActivity : AppCompatActivity() {
                 engine = LandmarkEngine(this)
                 classifier = Classifier(this)
                 runOnUiThread {
-                    statusView.text = "Raise your hands and sign (${classifier!!.labels.size} words)"
+                    modelsReady = true
+                    setRecording(false)
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                         == PackageManager.PERMISSION_GRANTED) startCamera()
                     else askCamera.launch(Manifest.permission.CAMERA)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "model load failed", e)
-                runOnUiThread { statusView.text = "Model load failed: ${e.message}" }
+                runOnUiThread { setStatus("Model load failed: ${e.message}", cRec) }
             }
         }
         ui.post(statsTicker)
     }
+
+    // ================= stats panel =================
 
     private val statsTicker = object : Runnable {
         override fun run() {
@@ -169,6 +280,8 @@ class MainActivity : AppCompatActivity() {
             ui.postDelayed(this, 1000)
         }
     }
+
+    // ================= camera + analysis (pipeline unchanged) =================
 
     private fun startCamera() {
         val future = ProcessCameraProvider.getInstance(this)
@@ -193,7 +306,7 @@ class MainActivity : AppCompatActivity() {
                     CameraSelector.Builder().requireLensFacing(lensFacing).build(), preview, analysis)
             } catch (e: Exception) {
                 Log.e(TAG, "camera bind failed", e)
-                statusView.text = "Camera error: ${e.message}"
+                setStatus("Camera error: ${e.message}", cRec)
             }
         }, ContextCompat.getMainExecutor(this))
     }
@@ -231,6 +344,11 @@ class MainActivity : AppCompatActivity() {
             overlay.update(res.handsXY, frame.width, frame.height,
                 lensFacing == CameraSelector.LENS_FACING_FRONT, rec)
 
+            // UI state change first, then the prediction (both post to the main thread in order)
+            if (rec != lastRec) {
+                lastRec = rec
+                runOnUiThread { setRecording(rec) }
+            }
             if (seg != null) {
                 val f0 = SystemClock.elapsedRealtimeNanos()
                 val feats = Features.compute(Features.capFrames(seg))
@@ -240,10 +358,6 @@ class MainActivity : AppCompatActivity() {
                 // caption latency: last frame's processing + features + classifier
                 lastCaptionMs = frameMs + lastFeatMs + pred.ms
                 runOnUiThread { showPrediction(pred) }
-            } else if (rec) {
-                runOnUiThread { if (!holding) statusView.text = "Signing..." }
-            } else if (autoMode) {
-                runOnUiThread { statusView.text = "Raise your hands and sign" }
             }
         } catch (e: Exception) {
             Log.e(TAG, "analyze failed", e)
@@ -252,42 +366,151 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ================= UI state =================
+
+    private fun setStatus(text: String, dotColor: Int) {
+        statusView.text = text
+        statusDot.backgroundTintList = ColorStateList.valueOf(dotColor)
+    }
+
+    /** Signing indicator: coral card border + pulsing dot while a sign is being recorded. */
+    private fun setRecording(on: Boolean) {
+        if (!modelsReady || !mlOn) return
+        camCard.strokeColor = if (on) cRec else cOutline
+        camCard.strokeWidth = dp(if (on) 3f else 1f).toInt()
+        pulse?.cancel(); statusDot.alpha = 1f
+        if (on) {
+            setStatus(if (autoMode) "Listening… lower your hands to finish" else "Listening… release when done", cRec)
+            pulse = ValueAnimator.ofFloat(1f, 0.25f).apply {
+                duration = 600; repeatMode = ValueAnimator.REVERSE; repeatCount = ValueAnimator.INFINITE
+                addUpdateListener { statusDot.alpha = it.animatedValue as Float }
+                start()
+            }
+        } else {
+            setStatus(if (autoMode) "Raise your hands to sign" else "Press and hold the button to sign", cAccent)
+        }
+    }
+
+    private fun showIdleWord() {
+        wordView.text = "Ready when you are"
+        wordView.setTextColor(cMuted)
+        wordView.textSize = 22f
+        confView.visibility = View.INVISIBLE
+    }
+
     private fun showPrediction(p: Classifier.Prediction) {
         val seg = ++segCounter
-        wordView.text = p.top[0]
-        confView.text = "%.0f%%".format(p.probs[0] * 100)
+        val conf = p.probs[0]
+        val sure = conf >= AUTO_ADD_CONF
+
+        // the word: large, animated in
+        wordView.text = pretty(p.top[0])
+        wordView.setTextColor(cText)
+        wordView.textSize = 40f
+        wordView.alpha = 0f; wordView.scaleX = 0.92f; wordView.scaleY = 0.92f
+        wordView.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180).start()
+        wordView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+
+        // confidence pill: green = sure, amber = likely, grey = unsure
+        val (fg, bg) = when {
+            conf >= SURE_CONF -> cAccent to cAccentDim
+            sure -> cAmber to 0x33F5B841
+            else -> cMuted to cSurface2
+        }
+        confView.text = "%.0f%%".format(conf * 100)
+        confView.setTextColor(fg)
+        confView.backgroundTintList = ColorStateList.valueOf(bg)
+        confView.visibility = View.VISIBLE
+
+        // suggestions: tapping one corrects the word added for this sign
         top5View.removeAllViews()
         for ((i, w) in p.top.withIndex()) {
-            val b = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
-            b.text = "%s %.0f%%".format(w, p.probs[i] * 100)
-            b.isAllCaps = false
-            b.setOnClickListener {
-                // tapping an alternative corrects the word added for this sign
-                if (lastAddedSeg == seg && words.isNotEmpty()) words[words.size - 1] = w
-                else words.add(w)
-                lastAddedSeg = seg
-                renderSentence()
+            val chip = Chip(this).apply {
+                text = pretty(w)
+                isCheckable = false
+                setTextColor(if (i == 0) cAccent else cText)
+                chipBackgroundColor = ColorStateList.valueOf(if (i == 0) cAccentDim else cSurface2)
+                chipStrokeColor = ColorStateList.valueOf(if (i == 0) cAccentDim else cOutline)
+                chipStrokeWidth = dp(1f)
+                textSize = 15f
+                setOnClickListener {
+                    if (lastAddedSeg == seg && words.isNotEmpty()) words[words.size - 1] = w
+                    else words.add(w)
+                    lastAddedSeg = seg
+                    wordView.text = pretty(w)
+                    renderSentence()
+                    it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                }
             }
             val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT).apply { marginEnd = 8 }
-            top5View.addView(b, lp)
+                LinearLayout.LayoutParams.WRAP_CONTENT).apply { marginEnd = dp(8f).toInt() }
+            top5View.addView(chip, lp)
         }
-        if (p.probs[0] >= AUTO_ADD_CONF) {
+        (top5View.parent as? View)?.scrollTo(0, 0)
+
+        if (sure) {
             words.add(p.top[0]); lastAddedSeg = seg
-            statusView.text = "Added ${p.top[0]} - tap an alternative to correct"
+            setStatus("Added. Tap a suggestion to fix it", cAccent)
         } else {
-            statusView.text = "Not sure - tap the right word"
+            setStatus("Not sure. Tap the right word below", cAmber)
         }
         renderSentence()
     }
 
     private fun renderSentence() {
-        sentenceView.text = words.joinToString(" ")
+        sentenceView.text = sentenceText()
     }
+
+    private fun sentenceText(): String {
+        val s = words.joinToString(" ") { it.lowercase(Locale.US) }
+        return s.replaceFirstChar { it.titlecase(Locale.US) }
+    }
+
+    /** Labels are upper-case ("THANK YOU"); show them as "Thank you". */
+    private fun pretty(label: String): String =
+        label.lowercase(Locale.US).replaceFirstChar { it.titlecase(Locale.US) }
+
+    private fun speak(text: String) {
+        if (text.isEmpty()) { toast("Sign a few words first"); return }
+        val t = tts
+        if (t == null || !ttsReady) { toast("Speech is not available on this phone"); return }
+        t.speak(text, TextToSpeech.QUEUE_FLUSH, null, "sentence")
+    }
+
+    private fun showWordList() {
+        val labels = classifier?.labels
+        if (labels == null) { toast("Still loading"); return }
+        val sheet = BottomSheetDialog(this)
+        val v = LayoutInflater.from(this).inflate(R.layout.sheet_words, null)
+        val items = labels.map { pretty(it) }.sorted()
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
+        v.findViewById<TextView>(R.id.wordsTitle).text = "%,d words EchoGesture knows".format(items.size)
+        v.findViewById<ListView>(R.id.wordsList).adapter = adapter
+        v.findViewById<EditText>(R.id.wordsSearch).doAfterTextChanged { adapter.filter.filter(it) }
+        sheet.setContentView(v)
+        sheet.show()
+    }
+
+    // ================= helpers =================
+
+    private fun styleModeButtons() {
+        for (b in listOf(modeAuto, modeHold)) {
+            val on = b.id == modeGroup.checkedButtonId
+            b.backgroundTintList = ColorStateList.valueOf(if (on) cAccentDim else 0x00000000)
+            b.setTextColor(if (on) cAccent else cMuted)
+            b.strokeColor = ColorStateList.valueOf(cOutline)
+        }
+    }
+
+    private fun color(id: Int) = ContextCompat.getColor(this, id)
+    private fun dp(v: Float) = v * resources.displayMetrics.density
+    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
     override fun onDestroy() {
         super.onDestroy()
         ui.removeCallbacks(statsTicker)
+        pulse?.cancel()
+        tts?.shutdown()
         analysisExec.execute { engine?.close(); classifier?.close() }
         analysisExec.shutdown()
     }

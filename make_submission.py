@@ -11,8 +11,8 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SKIP_DIRS = {"__pycache__", ".ipynb_checkpoints", "tflite", "backup_modelA"}
-SKIP_FILES = {"echogesture.pt", "_calib.npy", "_pre.onnx"}  # training checkpoint not needed at inference
+SKIP_DIRS = {"__pycache__", ".ipynb_checkpoints", "tflite", "backup_modelA", "backup_modelD", "backup_modelE", "old_modelD_E", "robust_E", "robust_F"}
+SKIP_FILES = {"echogesture.pt", "echo_F60.pt", "benchmark_busy.json", "benchmark_prev.json", "_calib.npy", "_pre.onnx"}  # training checkpoint not needed at inference
 
 
 def main():
