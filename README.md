@@ -118,17 +118,20 @@ We got here one step at a time, and kept only what actually helped:
 
 ## AI usage disclosure
 
-We used an AI coding assistant (Claude, by Anthropic) during development. It helped write and debug code: the Python pipeline (landmark extraction, features, training, quantization and evaluation scripts), the Android app code and UI, and the packaging scripts. It also drafted documentation (this README and the deck text) and suggested training and evaluation approaches.
+We used an AI coding assistant (Claude, by Anthropic) during development, mainly for implementation support and debugging.
 
-The team set the direction and made the decisions:
+**What the AI did**
+- Assisted with portions of the code implementation and debugging: the Python pipeline scripts (landmark extraction, features, training, quantization, evaluation), the Android app code and UI, and the packaging scripts.
+- Generated initial drafts of some documentation tables and text, which the team reviewed, rewrote, and finalised.
 
-- chose the approach and datasets
-- decided which models to keep or drop
-- ran GPU training on Colab and Kaggle
-- built, installed and tested the Android app on a real phone (Samsung Galaxy S23 FE)
-- took all on-device measurements (latency, power, thermal drift)
-- recorded the demo video
-- reviewed and submitted the work
+**What the team did**
+- Came up with the idea and designed the pipeline architecture: what to extract, how the stages fit together, and how it runs fully on-device.
+- Chose the approach and datasets, and decided which models to keep or drop.
+- Wrote the final README text and deck content ourselves.
+- Ran GPU training on Colab and Kaggle.
+- Built, installed, and tested the Android app on a real phone (Samsung Galaxy S23 FE).
+- Took all on-device measurements (latency, power, thermal drift).
+- Recorded the demo video, reviewed everything, and submitted the work.
 
 All reported numbers come from our own runs and are reproducible with the scripts in `src/scripts/`. No AI model is part of the shipped product: EchoGesture runs only our own trained classifier and Google's MediaPipe, fully on-device.
 
